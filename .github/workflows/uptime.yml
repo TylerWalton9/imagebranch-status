@@ -1,0 +1,41 @@
+name: ImageBranch external uptime
+on:
+  schedule:
+    - cron: '2-57/5 * * * *'
+  workflow_dispatch:
+    inputs:
+      test_notification:
+        description: Send a clearly labelled Feishu test notification
+        type: boolean
+        default: false
+permissions:
+  contents: write
+concurrency:
+  group: imagebranch-uptime
+  cancel-in-progress: false
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Check public endpoints and deliver notifications
+        env:
+          FEISHU_ALERT_WEBHOOK: ${{ secrets.FEISHU_ALERT_WEBHOOK }}
+          TEST_NOTIFICATION: ${{ inputs.test_notification }}
+        run: |
+          if [ "$TEST_NOTIFICATION" = "true" ]; then
+            python3 monitor.py --test-notification
+          else
+            python3 monitor.py
+          fi
+      - name: Save status and hourly check-in
+        if: inputs.test_notification != true
+        run: |
+          git config user.name 'ImageBranch Operations'
+          git config user.email 'support@imagebranch.com'
+          git add state.json
+          if ! git diff --cached --quiet; then
+            git commit -m 'chore: record external uptime status'
+            git push
+          fi
