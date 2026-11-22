@@ -30,7 +30,7 @@ def check(url):
                     return True, "HTTP " + str(response.status)
         except urllib.error.HTTPError as error:
             detail = "HTTP " + str(error.code)
-        except (OSError, ValueError):
+        except (OSError, ValueError, AttributeError):
             detail = "network or response error"
         if attempt < 2:
             time.sleep(5)
