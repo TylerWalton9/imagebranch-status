@@ -1,7 +1,7 @@
 name: ImageBranch external uptime
 on:
   schedule:
-    - cron: '2-57/5 * * * *'
+    - cron: '*/5 * * * *'
   workflow_dispatch:
     inputs:
       test_notification:
